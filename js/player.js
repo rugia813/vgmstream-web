@@ -1,25 +1,25 @@
 "use strict"
 
-var browse = document.getElementById("browse")
-var browsedir = document.getElementById("browsedir")
-var selectbtn = document.getElementById("selectbtn")
-var selectdirbtn = document.getElementById("selectdirbtn")
+var dropZone = document.getElementById("drop-zone")
+var fileInput = document.getElementById("file-input")
+var playerContainer = document.getElementById("player-container")
+var mediaPlayer = document.getElementById("media-player")
+var audioPlayer = document.getElementById("audio-player")
+var playlistContainer = document.getElementById("playlist-container")
+var playlist = document.getElementById("playlist")
+var controls = document.getElementById("controls")
+var downloadSelectedBtn = document.getElementById("download-selected-btn")
+var downloadAllBtn = document.getElementById("download-all-btn")
+var renameSelectedBtn = document.getElementById("rename-selected-btn")
+var renameAllBtn = document.getElementById("rename-all-btn")
+var removeSelectedBtn = document.getElementById("remove-selected-btn")
 var wasmwarning = document.getElementById("wasmwarning")
-var directorybox = document.getElementById("directorybox")
-var dirselect = document.getElementById("dirselect")
-var audiobox = document.getElementById("audiobox")
-var filenamebox = document.getElementById("filenamebox")
-var audio = document.getElementById("audio")
-var download = document.getElementById("download")
-var logbox = document.getElementById("logbox")
-var logdropdown = document.getElementById("logdropdown")
-var log = document.getElementById("log")
 var fadeoverlay = document.getElementById("fadeoverlay")
 
 var jsDir = "js/"
-var dlfilename
+var playlistItems = [] // Stores {file, convertedUrl, id}
+var currentPlayingId = null
 var noConverting
-var dirPromise
 var locked = false
 var hashLock = false
 var dragTarget = null
@@ -30,19 +30,7 @@ function corsBridge(input){
 	return fetch(url.toString())
 }
 
-var canPickDir = typeof showDirectoryPicker === "function" || "webkitdirectory" in HTMLInputElement.prototype
-if(canPickDir){
-	if(navigator.userAgentData && navigator.userAgentData.platform){
-		canPickDir = !navigator.userAgentData.mobile
-	}else{
-		canPickDir = !["Android", "iPhone", "iPad"].find(input =>
-			navigator.userAgent.indexOf(input) !== -1
-		)
-	}
-}
-if(canPickDir){
-	selectdirbtn.style.display = "block"
-}
+// Removed canPickDir logic as it's no longer relevant for the new UI
 
 var wasmSupported = (() => {
 	try{
@@ -138,8 +126,10 @@ if(wasmSupported){
 	}else if(hashParams.has("play") || hashParams.has("sub")){
 		checkHash(hashParams)
 	}else{
-		checkFileHandling()
+		// checkFileHandling() // This function is no longer needed in its original form
 	}
+	initializeDragAndDrop()
+	addControlListeners()
 }
 
 function vgmstream(...args){
@@ -158,18 +148,28 @@ function deleteFile(name){
 	return cliWorker.send("deleteFile", name)
 }
 
-function convertFile(file){
-	return convertDir([file], file.name)
-}
-
-async function convertDir(files, inputFilename){
+async function convertFile(file){
 	fade(1, true)
 	try{
-		var response = await cliWorker.send("convertDir", files, inputFilename)
+		var response = await cliWorker.send("convertFile", file)
 	}finally{
 		fade(0)
 	}
 	return response
+}
+
+async function convertFiles(files){
+	fade(1, true)
+	try{
+		var responses = []
+		for (const file of files) {
+			const response = await cliWorker.send("convertFile", file);
+			responses.push({ file, response });
+		}
+	}finally{
+		fade(0)
+	}
+	return responses
 }
 
 function workerError(error){
@@ -182,42 +182,13 @@ function workerError(error){
 	return error
 }
 
-function insertAudio(response){
+function insertAudio(file, response){
 	if(!response){
 		var msg = "Empty response"
 		alert(msg)
 		throw new Error(msg)
 	}else if(response.url){
-		if(audio.src){
-			URL.revokeObjectURL(audio.src)
-		}
-		audio.src = response.url
-		dlfilename = response.outputFilename
-		filenamebox.innerText = response.inputFilename
-		
-		var errors = []
-		var stderr = response.stderr.trim()
-		if(stderr){
-			errors.push(stderr)
-		}
-		var streamInfo = response.stdout.trim().split("\n").map(input => {
-			try{
-				return JSON.parse(input)
-			}catch(e){
-				errors.push(input)
-				return null
-			}
-		}).filter(Boolean)[0]
-		
-		if(streamInfo && streamInfo.loopingInfo){
-			audio.loop = true
-			audio.loopStart = streamInfo.loopingInfo.start / streamInfo.sampleRate
-			audio.loopEnd = streamInfo.loopingInfo.end / streamInfo.sampleRate
-		}else{
-			audio.loop = false
-		}
-		outputTable(streamInfo, errors)
-		audiobox.style.display = "block"
+		addToPlaylist(file, response.url, response.outputFilename, response.stdout, response.stderr)
 	}else{
 		var msg = "Worker did not respond with an audio file"
 		alert(msg)
