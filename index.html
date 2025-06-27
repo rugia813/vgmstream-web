@@ -16,46 +16,45 @@
 <script src="js/dark-toggle.js"></script>
 </head>
 <body>
-  <main>
-    <header>
-      <h2>vgmstream-web</h2>
-    </header>
-
-    <div id="drop-zone" class="drop-zone">
-      <p>Drag & drop WEM files or folders here, or click to select.</p>
-      <input type="file" multiple id="file-input" class="visually-hidden">
-    </div>
-
-    <div id="player-container" class="player-container">
-      <div id="media-player" class="media-player">
-        <custom-audio id="audio-player" controls></custom-audio>
-      </div>
-      <div id="playlist-container" class="playlist-container">
-        <ul id="playlist" class="playlist">
-          <!-- Playlist items will be dynamically added here -->
-        </ul>
-      </div>
-    </div>
-
-    <div id="controls" class="controls">
-      <button id="download-selected-btn" class="button">Download Selected</button>
-      <button id="download-all-btn" class="button">Download All</button>
-      <button id="rename-selected-btn" class="button">Rename Selected</button>
-      <button id="rename-all-btn" class="button">Rename All</button>
-      <button id="remove-selected-btn" class="button">Remove Selected</button>
-    </div>
-  </main>
-
-  <div id="footer" data-nosnippet>
-    <!-- Existing footer content -->
-  </div>
-
-  <div id="fadeoverlay" data-nosnippet>...</div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-  <script src="js/soundbuffer.js"></script>
-  <script src="js/custom-audio.js"></script>
-  <script src="js/player.js"></script>
+<main>
+	<header><h2>vgmstream-web</h2></header>
+	<input type="file" multiple id="browse">
+	<input type="file" webkitdirectory id="browsedir">
+	<div id="buttons" data-nosnippet>
+		<button class="greenbutton" id="selectbtn">Select or drop an audio stream file here...</button>
+		<button class="greenbutton" id="selectdirbtn">Folder</button>
+	</div>
+	<noscript><div data-nosnippet>This page requires JavaScript to be enabled in your browser.</div></noscript>
+	<div id="wasmwarning" data-nosnippet>This page requires WebAssembly to be enabled in your browser.</div>
+	<div id="directorybox">
+		<form>
+			<select id="dirselect" size="2"></select>
+			<div><input id="dirselectbtn" class="button" type="submit" value="Select"></div>
+		</form>
+	</div>
+	<div id="audiobox">
+		<div id="filenamebox"></div>
+		<div><custom-audio id="audio" controls></custom-audio></div>
+		<div><input id="download" class="button" type="button" value="Download"></div>
+		<div id="logbox">
+			<a id="logdropdown" tabindex="0">vgmstream output</a>
+			<div id="log"></div>
+		</div>
+	</div>
+</main>
+<div id="footer" data-nosnippet>
+	<ul>
+		<li><a href="https://github.com/vgmstream/vgmstream">vgmstream</a></li>
+		<li><a href="https://github.com/KatieFrogs">Katie Frogs</a></li>
+		<li>
+			<a id="darktoggle" tabindex="0">Dark theme</a>
+			<a id="darkreset" tabindex="0" title="Reset">(x)</a>
+		</li>
+	</ul>
+</footer>
+<div id="fadeoverlay" data-nosnippet>...</div>
+<script src="js/soundbuffer.js"></script>
+<script src="js/custom-audio.js"></script>
+<script src="js/player.js"></script>
 </body>
 </html>
