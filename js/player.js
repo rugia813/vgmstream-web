@@ -218,9 +218,6 @@ function insertAudio(response){
 		}
 		outputTable(streamInfo, errors)
 		audiobox.style.display = "block"
-
-		// Auto-play the audio after loading
-		audio.play()
 	}else{
 		var msg = "Worker did not respond with an audio file"
 		alert(msg)
@@ -498,6 +495,17 @@ async function selectFile(files){
 		dirselect.addEventListener("dblclick", fileSelected)
 	})
 
+	// play next one on ended if there is a next file, debounced to avoid issues with fast clicking
+	audio.onended = debounce(() => {
+		var nextIndex = dirselect.selectedIndex + 1
+		if(nextIndex < dirselect.options.length){
+			dirselect.selectedIndex = nextIndex
+			fileSelected(new Event("dblclick"))
+		}else{
+			audio.onended = null
+		}
+	}, 300)
+
 	dirPromise = null
 	// dirselect.form.removeEventListener("submit", fileSelected)
 	// dirselect.removeEventListener("dblclick", fileSelected)
@@ -508,6 +516,16 @@ async function selectFile(files){
 		return file
 	}
 }
+
+function debounce(func, delay){
+	let timeout
+	return function(...args){
+		clearTimeout(timeout)
+		timeout = setTimeout(() => {
+			func.apply(this, args)
+		}, delay)
+	}
+	}
 
 function naturalSort(input){
 	var collator = new Intl.Collator(undefined, {

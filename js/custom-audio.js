@@ -5,8 +5,9 @@ var buffer = new SoundBuffer()
 class CustomAudio extends HTMLElement{
 	#updateInterval = 200
 	#seekStep = 0.1
-	
+
 	constructor(){
+	    console.log("CustomAudio constructor called");
 		super()
 		this.attachShadow({mode: "open"})
 		this.#addStyle()
@@ -33,6 +34,7 @@ class CustomAudio extends HTMLElement{
 	#timestamp
 	#seek
 	#showPlayer(){
+	    console.log("#showPlayer called");
 		this.#shown = true
 		this.#onKeyBind = this.#onKey.bind(this)
 		this.addEventListener("keydown", this.#onKeyBind)
@@ -76,6 +78,7 @@ class CustomAudio extends HTMLElement{
 		this.#update(true)
 	}
 	#hidePlayer(){
+	    console.log("#hidePlayer called");
 		this.#shown = false
 		this.removeEventListener("keydown", this.#onKeyBind)
 		this.#playButton.removeEventListener("click", this.#onPlayBind)
@@ -114,6 +117,8 @@ class CustomAudio extends HTMLElement{
 	#loopStart = 0
 	#loopEnd = 0
 	async attributeChangedCallback(name, oldValue, newValue){
+	    console.log("attributeChangedCallback called with name:", name, "oldValue:", oldValue, "newValue:", newValue);
+			this.pause()
 		switch(name){
 			case "controls":
 				if(this.isConnected){
@@ -152,11 +157,7 @@ class CustomAudio extends HTMLElement{
 					}
 					this.#sound = sound
 					this.#currentTime = 0
-					if(this.paused){
-						this.#update()
-					}else{
-						this.play()
-					}
+					this.play()
 					this.#loaded = true
 					if(this.#shown){
 						this.#player.classList.add("loaded")
@@ -308,6 +309,7 @@ class CustomAudio extends HTMLElement{
 		return minus * (h * 60 + m) * 60 + s
 	}
 	#onPlay(){
+	    console.log("#onPlay called");
 		if(this.paused){
 			this.play()
 		}else{
@@ -317,6 +319,7 @@ class CustomAudio extends HTMLElement{
 	#updateTimer
 	#soundStarted
 	play(){
+	    console.log("play called", );
 		if(!this.#sound){
 			return
 		}
@@ -338,6 +341,7 @@ class CustomAudio extends HTMLElement{
 		this.#event("play")
 	}
 	pause(){
+	    console.log("pause called");
 		if(this.paused){
 			return
 		}
@@ -346,7 +350,7 @@ class CustomAudio extends HTMLElement{
 		this.#currentTime += this.#sound.getTime() - this.#soundStarted
 		this.#update(true)
 		clearInterval(this.#updateTimer)
-		
+
 	}
 	#onKey(event){
 		if(event.defaultPrevented || !this.#loaded){

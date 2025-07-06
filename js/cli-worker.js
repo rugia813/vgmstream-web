@@ -3,6 +3,7 @@
 var wasmDir = "https://vgmstream.org/web/"
 
 async function messageEvent(data){
+    console.log("messageEvent called with data:", data);
 	var input = data.content
 	var output
 	var error
@@ -59,24 +60,27 @@ function setupDir(dir, callback){
 }
 
 async function convertDir(dir, inputFilename, arrayBuffer){
+    console.log("convertDir called with dir:", dir, "inputFilename:", inputFilename, "arrayBuffer:", arrayBuffer);
 	var outputFilename = "/" + Math.random() + "output.wav"
-	
+
 	var output = setupDir(dir, () => vgmstream("-I", "-o", outputFilename, "-i", inputFilename))
-	
+
 	return getOutput(output, inputFilename, outputFilename, arrayBuffer)
 }
 
 async function convertFile(data, inputFilename, arrayBuffer){
+    console.log("convertFile called with data:", data, "inputFilename:", inputFilename, "arrayBuffer:", arrayBuffer);
 	var outputFilename = "/" + Math.random() + "output.wav"
-	
+
 	writeFile(inputFilename, data)
 	var output = vgmstream("-I", "-o", outputFilename, "-i", inputFilename)
 	deleteFile(inputFilename)
-	
+
 	return getOutput(output, inputFilename, outputFilename, arrayBuffer)
 }
 
 function getOutput(output, inputFilename, outputFilename, arrayBuffer){
+    console.log("getOutput called with output:", output, "inputFilename:", inputFilename, "outputFilename:", outputFilename, "arrayBuffer:", arrayBuffer);
 	if(output.error){
 		deleteFile(outputFilename)
 		var error = output.error
@@ -105,12 +109,14 @@ function getOutput(output, inputFilename, outputFilename, arrayBuffer){
 }
 
 function writeFile(name, data){
+    console.log("writeFile called with name:", name, "data:", data);
 	var stream = FS.open(name, "w+")
 	FS.write(stream, data, 0, data.length, 0)
 	FS.close(stream)
 }
 
 function readFile(name){
+    console.log("readFile called with name:", name);
 	try{
 		var file = FS.open(name, "r")
 	}catch(e){
@@ -123,6 +129,7 @@ function readFile(name){
 }
 
 function deleteFile(name){
+    console.log("deleteFile called with name:", name);
 	try{
 		FS.unlink(name)
 	}catch(e){}
