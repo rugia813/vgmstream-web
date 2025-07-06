@@ -194,7 +194,7 @@ function insertAudio(response){
 		audio.src = response.url
 		dlfilename = response.outputFilename
 		filenamebox.innerText = response.inputFilename
-		
+
 		var errors = []
 		var stderr = response.stderr.trim()
 		if(stderr){
@@ -208,7 +208,7 @@ function insertAudio(response){
 				return null
 			}
 		}).filter(Boolean)[0]
-		
+
 		if(streamInfo && streamInfo.loopingInfo){
 			audio.loop = true
 			audio.loopStart = streamInfo.loopingInfo.start / streamInfo.sampleRate
@@ -218,6 +218,9 @@ function insertAudio(response){
 		}
 		outputTable(streamInfo, errors)
 		audiobox.style.display = "block"
+
+		// Auto-play the audio after loading
+		audio.play()
 	}else{
 		var msg = "Worker did not respond with an audio file"
 		alert(msg)
@@ -236,7 +239,7 @@ function outputTable(streamInfo, errors){
 	if(!streamInfo){
 		return
 	}
-	
+
 	var table = document.createElement("table")
 	var insertRow = function(name, info){
 		var tr = document.createElement("tr")
@@ -248,7 +251,7 @@ function outputTable(streamInfo, errors){
 		tr.appendChild(td)
 		table.appendChild(tr)
 	}
-	
+
 	for(var i in streamInfo){
 		if(streamInfo[i] !== null && i !== "version"){
 			var name = unCamelCase(i)
@@ -458,12 +461,12 @@ async function selectFile(files){
 	}else if(files.length === 1){
 		return files[0].name
 	}
-	
+
 	var audioStyle = audiobox.style.display
 	audiobox.style.display = ""
 	directorybox.style.display = "block"
 	dirselect.innerText = ""
-	
+
 	var dir = []
 	for(var i = 0; i < files.length; i++){
 		dir.push(files[i])
@@ -477,7 +480,7 @@ async function selectFile(files){
 	})
 	dirselect.size = Math.max(2, Math.min(20, dir.length))
 	dirselect.focus()
-	
+
 	var fileSelected
 	var file = await new Promise(resolve => {
 		dirPromise = resolve
@@ -487,18 +490,20 @@ async function selectFile(files){
 			}
 			if(dirselect.value){
 				resolve(dirselect.value)
+				// Ensure the selected file is loaded into the player
+				displayFiles([files.find(file => file.name === dirselect.value)])
 			}
 		}
 		dirselect.form.addEventListener("submit", fileSelected)
 		dirselect.addEventListener("dblclick", fileSelected)
 	})
-	
+
 	dirPromise = null
-	dirselect.form.removeEventListener("submit", fileSelected)
-	dirselect.removeEventListener("dblclick", fileSelected)
-	directorybox.style.display = ""
+	// dirselect.form.removeEventListener("submit", fileSelected)
+	// dirselect.removeEventListener("dblclick", fileSelected)
+
 	audiobox.style.display = audioStyle
-	
+
 	if(file){
 		return file
 	}
@@ -626,7 +631,7 @@ async function checkHash(hashParams){
 				}
 				promises.push(
 					validateUrl(url)
-					.then(() => 
+					.then(() =>
 						fetch(url)
 						.catch(error => corsBridge(url))
 						.catch(error => {

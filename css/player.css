@@ -63,7 +63,7 @@ main{
 }
 #directorybox,
 #audiobox{
-	display: none;
+	display: block !important;
 	width: 100%;
 }
 #dirselect{
